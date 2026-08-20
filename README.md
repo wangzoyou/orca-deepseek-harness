@@ -2,9 +2,9 @@
 
 This repository packages the complete tested integration of:
 
-- Orca, the multi-agent workspace and orchestration desktop application.
-- DeepSeek Harness, the official agent runtime.
-- `dsh-terminal-plugin`, the interactive terminal front door that Orca launches and recognizes.
+* Orca, the multi-agent workspace and orchestration desktop application.
+* DeepSeek Harness, the official agent runtime.
+* `dsh-terminal-plugin`, the interactive terminal front door that Orca launches and recognizes.
 
 The bundle includes the Orca DeepSeek integration: process recognition, terminal status OSC events, AI Vault history scanning, concatenated zstd session parsing, session resume commands, and supervised Orca `worker_done` orchestration.
 
@@ -12,10 +12,10 @@ The bundle includes the Orca DeepSeek integration: process recognition, terminal
 
 Requirements:
 
-- Windows, macOS, or Linux.
-- Node.js `22.19+` or `24+`.
-- `pnpm` 11 for Orca and DeepSeek Harness.
-- `npm` for the DSH terminal plugin.
+* Windows, macOS, or Linux.
+* Node.js `22.19+` or `24+`.
+* `pnpm` 11 for Orca and DeepSeek Harness.
+* `npm` for the DSH terminal plugin.
 
 Clone this repository, then run the setup command for your platform:
 
@@ -70,14 +70,20 @@ The DSH session scanner reads `session.jsonl.zstd` files under `DSH_HOME/session
 ## Layout
 
 ```text
-apps/orca/                  Orca source plus DeepSeek integration
-apps/deepseek-harness/      Official DeepSeek Harness source
+apps/orca/                   Orca source plus DeepSeek integration
+apps/deepseek-harness/       Official DeepSeek Harness source
 packages/dsh-terminal-plugin Interactive `dsh` TUI and Orca terminal protocol
-scripts/setup.ps1           Windows setup
-scripts/setup.sh            macOS/Linux setup
-scripts/verify-bundle.ps1   Source and required-file verification
-BUNDLE_MANIFEST.json        Upstream commits and integration contract
+scripts/setup.ps1            Windows setup
+scripts/setup.sh             macOS/Linux setup
+scripts/verify-bundle.ps1    Source and required-file verification
+BUNDLE_MANIFEST.json         Upstream commits and integration contract
 ```
+
+## Community
+
+This project recognizes and appreciates the **LINUX DO** community.
+
+* [LINUX DO](https://linux.do/) — A community for sharing, learning, and open-source collaboration.
 
 ## Source and Licensing
 
