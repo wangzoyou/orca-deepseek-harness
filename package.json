@@ -4,7 +4,7 @@
   "private": true,
   "description": "A reproducible Orca + DeepSeek Harness + dsh-terminal-plugin integration bundle.",
   "scripts": {
-    "verify:structure": "node scripts/run-powershell.cjs scripts/verify-bundle.ps1",
+    "verify:structure": "node scripts/verify-bundle.mjs",
     "setup:windows": "node scripts/run-powershell.cjs scripts/setup.ps1",
     "setup:unix": "sh scripts/setup.sh",
     "test:dsh-tui": "npm test --prefix packages/dsh-terminal-plugin",
