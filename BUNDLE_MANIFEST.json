@@ -1,0 +1,32 @@
+{
+  "bundle": "orca-deepseek-harness",
+  "version": "0.1.0",
+  "components": {
+    "orca": {
+      "source": "https://github.com/stablyai/orca",
+      "upstreamCommit": "feaebabf2ca48e201b71d3c07c62fd986b31393b",
+      "version": "1.4.178-rc.2",
+      "path": "apps/orca",
+      "license": "MIT"
+    },
+    "deepseekHarness": {
+      "source": "https://github.com/deepseek-ai/deepseek-harness",
+      "upstreamCommit": "47f943859bef60e4160492346772ded9b24f765a",
+      "path": "apps/deepseek-harness",
+      "license": "MIT"
+    },
+    "dshTerminalPlugin": {
+      "source": "https://github.com/P-A-N-52/dsh-terminal-plugin",
+      "upstreamCommit": "8c8650b98fa5b5ccc73ff274be01369189b0fea2",
+      "path": "packages/dsh-terminal-plugin",
+      "license": "MIT"
+    }
+  },
+  "integration": {
+    "orcaAgentId": "deepseek-harness",
+    "terminalCommand": "dsh cli",
+    "resumeCommand": "dsh cli --resume <session-id>",
+    "sessionStore": "~/.dsh/sessions/<workspace>/session-*/session.jsonl.zstd",
+    "orchestrationApproval": "dsh cli --approval allow"
+  }
+}

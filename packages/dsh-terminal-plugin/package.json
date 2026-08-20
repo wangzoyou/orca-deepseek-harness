@@ -1,0 +1,37 @@
+{
+  "name": "dsh-terminal-plugin",
+  "version": "0.1.0",
+  "description": "Unofficial terminal front door for DeepSeek Harness: type dsh to open an interactive coding CLI.",
+  "type": "module",
+  "bin": {
+    "dsh": "src/bin.js"
+  },
+  "files": [
+    "src",
+    "config",
+    "docs",
+    "scripts",
+    "test",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "check": "node scripts/check.js",
+    "pack:local": "npm pack"
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "keywords": [
+    "deepseek",
+    "deepseek-harness",
+    "coding-agent",
+    "cli",
+    "terminal"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

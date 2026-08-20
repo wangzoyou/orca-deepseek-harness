@@ -1,0 +1,11 @@
+node_modules/
+coverage/
+.cache/
+.staging/
+.env
+.env.*
+!.env.example
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db

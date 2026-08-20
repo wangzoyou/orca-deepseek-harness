@@ -1,0 +1,21 @@
+{
+  "name": "orca-deepseek-harness-bundle",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A reproducible Orca + DeepSeek Harness + dsh-terminal-plugin integration bundle.",
+  "scripts": {
+    "verify:structure": "node scripts/run-powershell.cjs scripts/verify-bundle.ps1",
+    "setup:windows": "node scripts/run-powershell.cjs scripts/setup.ps1",
+    "setup:unix": "sh scripts/setup.sh",
+    "test:dsh-tui": "npm test --prefix packages/dsh-terminal-plugin",
+    "check:dsh-tui": "npm run check --prefix packages/dsh-terminal-plugin",
+    "typecheck:orca": "pnpm --dir apps/orca run typecheck:node",
+    "test:orca-dsh": "pnpm --dir apps/orca exec vitest run --config config/vitest.config.ts src/main/ai-vault/session-scanner-deepseek-parser.test.ts src/main/ai-vault/session-scanner-deepseek-integration.test.ts src/shared/ai-vault-resume-command.test.ts",
+    "build:orca": "pnpm --dir apps/orca run build:electron-vite",
+    "build:harness": "pnpm --dir apps/deepseek-harness run build",
+    "test": "npm run verify:structure && npm run test:dsh-tui && npm run check:dsh-tui"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  }
+}

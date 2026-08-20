@@ -1,0 +1,11 @@
+# CLI transport overlay for the bundled Web host.
+# We reuse the official localhost HTTP/WebSocket API but deliberately remove
+# browser-only model context. The terminal client, not a browser tab, is the
+# active surface.
+- id: web-runtime
+  name: '@deepseek-ai/dsh-web-app'
+  inject: [webStartup]
+  config:
+    printUrl: true
+    surfaceContext: false
+    trustedHosts: !!js ctx.webStartup.trustedHosts
