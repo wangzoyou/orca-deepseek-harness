@@ -15,7 +15,9 @@ const DEFAULT_KEEPALIVE_INTERVAL_MS = 10_000
 
 export type UnixSocketTransportOptions = {
   endpoint: string
-  kind: 'unix' | 'named-pipe'
+  kind: 'unix' | 'named-pipe' | 'tcp'
+  host?: string
+  port?: number
   // Why: how often to write `{"_keepalive":true}\n` frames while a dispatch
   // is pending. Each write resets both the server-side idle timer and, once
   // the client honours them, the client-side idle timer. Tests override this
@@ -31,20 +33,31 @@ type MessageHandler = (
 
 export class UnixSocketTransport implements RpcTransport {
   private readonly endpoint: string
-  private readonly kind: 'unix' | 'named-pipe'
+  private readonly kind: 'unix' | 'named-pipe' | 'tcp'
+  private readonly host: string | undefined
+  private readonly port: number | undefined
   private readonly keepaliveIntervalMs: number
   private server: Server | null = null
   private messageHandler: MessageHandler | null = null
   private readonly activeSockets = new Set<Socket>()
 
-  constructor({ endpoint, kind, keepaliveIntervalMs }: UnixSocketTransportOptions) {
+  constructor({ endpoint, kind, host, port, keepaliveIntervalMs }: UnixSocketTransportOptions) {
     this.endpoint = endpoint
     this.kind = kind
+    this.host = host
+    this.port = port
     this.keepaliveIntervalMs = keepaliveIntervalMs ?? DEFAULT_KEEPALIVE_INTERVAL_MS
   }
 
   onMessage(handler: MessageHandler): void {
     this.messageHandler = handler
+  }
+
+  /** OS-assigned port for the loopback TCP fallback, when this transport uses TCP. */
+  get resolvedPort(): number | null {
+    if (this.kind !== 'tcp' || !this.server) return null
+    const address = this.server.address()
+    return address && typeof address === 'object' ? address.port : null
   }
 
   async start(): Promise<void> {
@@ -63,10 +76,19 @@ export class UnixSocketTransport implements RpcTransport {
 
     await new Promise<void>((resolve, reject) => {
       server.once('error', reject)
-      server.listen(this.endpoint, () => {
+      const onListening = (): void => {
         server.off('error', reject)
         resolve()
-      })
+      }
+      if (this.kind === 'tcp') {
+        if (!this.host || this.port === undefined) {
+          reject(new Error('TCP runtime transport requires host and port'))
+          return
+        }
+        server.listen(this.port, this.host, onListening)
+      } else {
+        server.listen(this.endpoint, onListening)
+      }
     })
 
     if (this.kind === 'unix') {

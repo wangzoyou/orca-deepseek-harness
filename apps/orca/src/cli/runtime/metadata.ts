@@ -12,7 +12,7 @@ export function readMetadata(userDataPath: string): RuntimeMetadata {
   const metadataPath = getRuntimeMetadataPath(userDataPath)
   try {
     const metadata = JSON.parse(readFileSync(metadataPath, 'utf8')) as RuntimeMetadata | null
-    if (!metadata || !findTransport(metadata, 'unix', 'named-pipe') || !metadata.authToken) {
+    if (!metadata || !findTransport(metadata, 'unix', 'named-pipe', 'tcp') || !metadata.authToken) {
       throw new RuntimeClientError(
         'runtime_unavailable',
         `Orca runtime metadata is incomplete at ${metadataPath}`

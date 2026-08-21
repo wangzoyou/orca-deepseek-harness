@@ -1,6 +1,6 @@
 import { createConnection } from 'node:net'
 import { randomUUID } from 'node:crypto'
-import { findTransport, type RuntimeMetadata } from '../../shared/runtime-bootstrap'
+import { findTransport, type RuntimeMetadata, type RuntimeTransportMetadata } from '../../shared/runtime-bootstrap'
 import type { RuntimeOrchestrationEnvelope } from '../../shared/runtime-rpc-envelope'
 import { isKeepaliveFrame, RuntimeRpcEnvelopeSchema } from './envelope-schema'
 import { RuntimeClientError, type RuntimeRpcResponse } from './types'
@@ -19,18 +19,26 @@ export async function sendRequest<TResult>(
       `Runtime request timeout must be an integer between 0 and ${MAX_TIMER_DELAY_MS}ms.`
     )
   }
-  return await new Promise((resolve, reject) => {
-    const transport = findTransport(metadata, 'unix', 'named-pipe')
-    if (!transport) {
-      reject(
-        new RuntimeClientError(
-          'runtime_unavailable',
-          'No compatible transport found in Orca runtime metadata.'
-        )
-      )
-      return
+  const transports: RuntimeTransportMetadata[] = [
+    findTransport(metadata, 'unix', 'named-pipe'), findTransport(metadata, 'tcp')
+  ].filter((transport): transport is RuntimeTransportMetadata => transport !== null)
+    .filter((transport, index, all) => all.findIndex((candidate) => candidate.endpoint === transport.endpoint) === index)
+  if (transports.length === 0) throw new RuntimeClientError('runtime_unavailable', 'No compatible transport found in Orca runtime metadata.')
+  let lastError: unknown
+  for (const transport of transports) {
+    try {
+      return await sendRequestOverTransport<TResult>(metadata, transport, method, params, timeoutMs, envelope)
+    } catch (error) {
+      lastError = error
+      if (!(error instanceof RuntimeClientError) || error.code !== 'runtime_unavailable') throw error
     }
-    const socket = createConnection(transport.endpoint)
+  }
+  throw lastError instanceof Error ? lastError : new RuntimeClientError('runtime_unavailable', 'Could not connect to the running Orca app.')
+}
+
+async function sendRequestOverTransport<TResult>(metadata: RuntimeMetadata, transport: RuntimeTransportMetadata, method: string, params: unknown, timeoutMs: number, envelope?: RuntimeOrchestrationEnvelope): Promise<RuntimeRpcResponse<TResult>> {
+  return await new Promise((resolve, reject) => {
+    const socket = transport.kind === 'tcp' ? createConnection(parseTcpEndpoint(transport.endpoint)) : createConnection(transport.endpoint)
     let buffer = ''
     let settled = false
     const requestId = randomUUID()
@@ -195,4 +203,12 @@ export async function sendRequest<TResult>(
       )
     })
   })
+}
+
+function parseTcpEndpoint(endpoint: string): { host: string; port: number } {
+  const separator = endpoint.lastIndexOf(':')
+  const host = endpoint.slice(0, separator)
+  const port = Number(endpoint.slice(separator + 1))
+  if (!host || !Number.isInteger(port) || port <= 0 || port > 65_535) throw new RuntimeClientError('runtime_unavailable', 'Orca runtime metadata contains an invalid TCP endpoint.')
+  return { host, port }
 }

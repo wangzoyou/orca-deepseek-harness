@@ -60,6 +60,7 @@ const DEFAULT_WS_PORT = 6768
 // reachable from the LAN; it widens to all interfaces only on explicit pairing (or `orca serve`).
 const WS_BIND_HOST_LOOPBACK = '127.0.0.1'
 const WS_BIND_HOST_ALL_INTERFACES = '0.0.0.0'
+const LOCAL_TCP_HOST = '127.0.0.1'
 
 type OrcaRuntimeRpcServerOptions = {
   runtime: OrcaRuntimeService
@@ -1169,6 +1170,38 @@ export class OrcaRuntimeRpcServer {
 
     const activeTransports: RpcTransport[] = [socketTransport]
     const transportsMeta: RuntimeTransportMetadata[] = [transportMeta]
+
+    // Windows ACL-restricted child processes cannot open named pipes. Keep a
+    // token-authenticated JSON-RPC fallback on loopback; the CLI tries the pipe first.
+    if (this.platform === 'win32') {
+      const tcpTransport = new UnixSocketTransport({
+        endpoint: '', kind: 'tcp', host: LOCAL_TCP_HOST, port: 0,
+        keepaliveIntervalMs: this.keepaliveIntervalMs
+      })
+      tcpTransport.onMessage((msg, reply, context) => {
+        void this.handleMessage(msg, context)
+          .then((response) => reply(JSON.stringify(response)))
+          .catch((error) => {
+            const message = error instanceof Error ? error.message : String(error)
+            let id = 'unknown'
+            try {
+              const parsed = JSON.parse(msg) as { id?: unknown }
+              if (typeof parsed.id === 'string' && parsed.id.length > 0) id = parsed.id
+            } catch {
+              // keep generic id for malformed requests
+            }
+            reply(JSON.stringify(this.buildError(id, 'internal_error', message)))
+          })
+      })
+      try {
+        await tcpTransport.start()
+        activeTransports.push(tcpTransport)
+        const port = tcpTransport.resolvedPort
+        if (port !== null && port > 0) transportsMeta.push({ kind: 'tcp', endpoint: `${LOCAL_TCP_HOST}:${port}` })
+      } catch (error) {
+        console.warn('[runtime] Failed to start local TCP fallback:', error)
+      }
+    }
 
     // Why: WebSocket uses per-device tokens + E2EE (tweetnacl) instead of TLS since React Native can't pin self-signed certs.
     if (this.enableWebSocket) {

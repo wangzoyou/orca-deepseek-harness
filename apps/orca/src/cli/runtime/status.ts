@@ -14,7 +14,7 @@ export async function getCliStatus(
   userDataPath: string
 ): Promise<RuntimeRpcSuccess<CliStatusResult>> {
   const metadata = tryReadMetadata(userDataPath)
-  const transport = metadata ? findTransport(metadata, 'unix', 'named-pipe') : null
+  const transport = metadata ? findTransport(metadata, 'unix', 'named-pipe', 'tcp') : null
   if (!transport || !metadata?.authToken) {
     return buildCliStatusResponse({
       app: {

@@ -10,6 +10,12 @@ export type RuntimeTransportMetadata =
       endpoint: string
     }
   | {
+      /** Loopback TCP fallback for restricted Windows child processes. */
+      kind: 'tcp'
+      /** `host:port`, bound to loopback by the runtime. */
+      endpoint: string
+    }
+  | {
       kind: 'websocket'
       endpoint: string
     }
